@@ -1,16 +1,9 @@
+import mockData from "./mockdata-pdf-extracts.json";
+import { chunkDocument, Chunk } from "./chunking-service";
 
-export async function search(query: string) {
-  const res = await fetch("/api/search", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ query }),
-  });
+const chunks: Chunk[] = chunkDocument(mockData);
 
-  if (!res.ok) {
-    throw new Error("Search failed");
-  }
-
-  return res.json();
+export function search(query: string): Chunk[] {
+  const q = query.toLowerCase();
+  return chunks.filter((chunk) => chunk.text.toLowerCase().includes(q));
 }

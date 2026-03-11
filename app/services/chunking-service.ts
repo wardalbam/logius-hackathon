@@ -1,36 +1,30 @@
-
-
-function splitParagraphs(text) {
-  return text
-    .split(/\n\s*\n/)
-    .map(p => p.trim())
-    .filter(Boolean)
+export interface Chunk {
+  documentId: string;
+  page: number;
+  chunkIndex: number;
+  text: string;
 }
 
-function splitLargeChunk(text, size = 500, overlap = 100) {
-  const chunks = []
-  let start = 0
+export function chunkDocument(
+  doc: { documentId: string; pages: { page: number; text: string }[] },
+  chunkSize = 50
+): Chunk[] {
+  const chunks: Chunk[] = [];
 
-  while (start < text.length) {
-    const end = start + size
-    chunks.push(text.slice(start, end))
-    start += size - overlap
-  }
+  for (const { page, text } of doc.pages) {
+    const words = text.split(" ");
+    let chunkIndex = 0;
 
-  return chunks
-}
-
-function hybridChunk(text) {
-  const paragraphs = splitParagraphs(text)
-  const results = []
-
-  for (const p of paragraphs) {
-    if (p.length <= 500) {
-      results.push(p)
-    } else {
-      results.push(...splitLargeChunk(p))
+    for (let i = 0; i < words.length; i += chunkSize) {
+      chunks.push({
+        documentId: doc.documentId,
+        page,
+        chunkIndex,
+        text: words.slice(i, i + chunkSize).join(" "),
+      });
+      chunkIndex++;
     }
   }
 
-  return results
+  return chunks;
 }
