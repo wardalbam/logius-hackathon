@@ -1,7 +1,7 @@
 import mockData from "./mockdata-pdf-extracts.json";
-import { chunkDocument, Chunk } from "./chunking-service";
+import { chunkDocuments, Chunk } from "./chunking-service";
 
-const chunks: Chunk[] = chunkDocument(mockData);
+const chunks: Chunk[] = chunkDocuments(mockData);
 
 export function search(query: string): Chunk[] {
   const q = query.toLowerCase();

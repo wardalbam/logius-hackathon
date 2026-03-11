@@ -10,6 +10,9 @@ export default function SearchPage() {
         placeholder="Search..."
         className="w-full max-w-xl"
       />
+
+    
+
     </main>
   );
 }
