@@ -34,3 +34,42 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+
+## Public sources
+Used pdfs from these sources, content is supposed to go into file: `.metadata_db.json`
+```json
+{
+    "tilburg-publicatieportaal__originele-verslag-onderzoek.pdf":
+    {
+        "source": "https://raw.githubusercontent.com/nl-design-system/gebruikersonderzoeken/assets/tilburg-publicatieportaal__originele-verslag-onderzoek.pdf",
+        "webpage": "https://gebruikersonderzoeken.nl/docs/onderzoek-bekijken/tilburg-publicatieportaal/",
+        "author": "Gemeente Tilburg",
+        "publication_date": "(2024, 08, 23)"
+    },
+    "Takeouts_Klachtenformulier_GemUtrecht.1.pdf": {
+        "source": "https://github.com/nl-design-system/gebruikersonderzoeken/files/15387310/Takeouts_Klachtenformulier_GemUtrecht.1.pdf",
+        "webpage": "https://gebruikersonderzoeken.nl/docs/onderzoek-bekijken/formulieren/utrecht-klachtenformulier-onderzoek/",
+        "author": "Gemeente Utrecht",
+        "publication_date": "(2024, 04, 22)"
+    },
+    "Gebruikersonderzoek.klachtenformulier.maart.2025.1.pdf": {
+        "source": "https://github.com/user-attachments/files/24217483/Gebruikersonderzoek.klachtenformulier.maart.2025.1.pdf",
+        "webpage": "https://gebruikersonderzoeken.nl/docs/onderzoek-bekijken/formulieren/venray-klachtenformulier-onderzoek/",
+        "author": "Gemeente Venray",
+        "publication_date": "(2025, 03, 01)"
+    },
+    "denhaag-mijn-producten__rapport.pdf": {
+        "source": "https://raw.githubusercontent.com/nl-design-system/gebruikersonderzoeken/assets/denhaag-mijn-producten__rapport.pdf",
+        "webpage": "https://gebruikersonderzoeken.nl/docs/onderzoek-bekijken/mijn-zaken/denhaag-mijn-producten/",
+        "author": "Gemeente Den Haag",
+        "publication_date": "(2025, 02, 01)"
+    },
+    "rvo-navigatie__rapport.pdf": {
+        "source": "https://raw.githubusercontent.com/nl-design-system/gebruikersonderzoeken/assets/rvo-navigatie__rapport.pdf",
+        "webpage": "https://gebruikersonderzoeken.nl/docs/onderzoek-bekijken/navigatie/rvo-navigatie/",
+        "author": "Rijksdienst voor Ondernemend Nederland",
+        "publication_date": "(2019, 03, 28)"
+    }
+}
+```
