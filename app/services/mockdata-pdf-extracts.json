@@ -1,0 +1,17 @@
+{
+  "documentId": "nextjs-guide",
+  "pages": [
+    {
+      "page": 1,
+      "text": "Next.js is a React framework for building full-stack web applications. It supports server-side rendering and static site generation."
+    },
+    {
+      "page": 2,
+      "text": "Server Components allow developers to render components on the server instead of the client. This improves performance and reduces bundle size."
+    },
+    {
+      "page": 3,
+      "text": "Next.js supports many database solutions including PostgreSQL, SQLite, and MongoDB. Using an ORM like Prisma simplifies database queries."
+    }
+  ]
+}
