@@ -3,8 +3,9 @@ import { SearchBar } from "@/components/ui/search-bar";
 
 export default async function SearchPage() {
   const chunks = await getChunksFromPdf(
-    // change this path to point to your PDF file in the public directory for testing, e.g. "/my-doc.pdf"
-    "tilburg-publicatieportaal__originele-verslag-onderzoek.pdf", 
+    // change this path to point to your PDF file in the public directory for testing, e.g. "data/my-doc.pdf"
+    // you need to create data folder
+    "data/tilburg-publicatieportaal__originele-verslag-onderzoek.pdf", 
     { maxWords: 100, overlapSentences: 2 }
   );
 

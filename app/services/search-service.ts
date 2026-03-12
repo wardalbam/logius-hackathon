@@ -1,1 +1,0 @@
-//  implement searching logic here and send to the backend to get results from the vector database
