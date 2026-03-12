@@ -31,6 +31,8 @@ export default async function SearchPage() {
             <p className="text-gray-800 leading-relaxed">{chunk.text}</p>
           </div>
         ))}
+
+          <ResultCard />
       </section>
     </main>
   );
