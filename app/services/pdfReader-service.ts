@@ -1,10 +1,16 @@
-import "server-only";
 import fs from "node:fs";
 import path from "node:path";
+import "server-only";
+import { chunkDocuments, type Chunk } from "./chunking-service";
 
 export interface PdfExtract {
   id: string;
   text: string;
+}
+
+export interface ChunkOptions {
+  maxWords?: number;
+  overlapSentences?: number;
 }
 
 export async function extractTextFromPdf(filePath: string): Promise<PdfExtract> {
@@ -21,12 +27,16 @@ export async function extractTextFromPdf(filePath: string): Promise<PdfExtract> 
 
   const id = path.basename(filePath, path.extname(filePath));
 
-  const extract = {
+  return {
     id,
     text: result.text.replaceAll(/\s+/g, " ").trim(),
   };
+}
 
-  console.log(extract);
-
-  return extract;
+export async function getChunksFromPdf(
+  filePath: string,
+  options?: ChunkOptions
+): Promise<Chunk[]> {
+  const extract = await extractTextFromPdf(filePath);
+  return chunkDocuments([extract], options?.maxWords, options?.overlapSentences);
 }

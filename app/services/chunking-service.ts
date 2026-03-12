@@ -1,5 +1,5 @@
 export interface Chunk {
-  id: string;
+  id: string; // <-- this is the source document's ID
   chunkIndex: number;
   text: string;
 }
@@ -11,6 +11,8 @@ function splitSentences(text: string): string[] {
     .filter((s) => s.length > 0);
 }
 
+// pass data as a json array of objects with id and text properties
+// json input example -> [ {"id": "doc1", "text": "This is the first document."}]
 export function chunkDocuments(
   docs: { id: string; text: string }[],
   maxWords = 100,
@@ -42,3 +44,4 @@ export function chunkDocuments(
 
   return chunks;
 }
+
