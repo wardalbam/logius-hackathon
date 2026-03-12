@@ -1,6 +1,7 @@
 "use client";
 
 import { SearchBar } from "@/components/ui/search-bar";
+import  ResultCard  from "@/components/ui/result-card";
 
 export default function SearchPage() {
 
@@ -10,6 +11,8 @@ export default function SearchPage() {
         placeholder="Search..."
         className="w-full max-w-xl"
       />
+
+        <ResultCard />
 
     
 
