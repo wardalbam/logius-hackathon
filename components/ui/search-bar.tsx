@@ -20,7 +20,7 @@ export function SearchBar({ placeholder = "Search...", onSearch, className }: Se
     const el = textareaRef.current;
     if (el) {
       el.style.height = "auto";
-      el.style.height = `${el.scrollHeight}px`;
+      el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
     }
   }
 
@@ -37,21 +37,29 @@ export function SearchBar({ placeholder = "Search...", onSearch, className }: Se
   }
 
   return (
-    <form onSubmit={handleSubmit} className={cn("flex items-end gap-3 justify-center", className)}>
-      <div className="relative flex-1">
-        <Search className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground pointer-events-none" />
-        <textarea
-          ref={textareaRef}
-          value={query}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder}
-          rows={1}
-          className="w-full rounded-3xl border border-input bg-background pl-11 pr-5 py-3 text-base font-bold shadow-sm outline-none focus:ring-2 focus:ring-ring transition-shadow resize-none overflow-hidden"
-        />
-      </div>
-      <Button variant="outline" className="rounded-full px-6 py-3 text-base font-bold shrink-0 mb-2 bg-primary text-primary-foreground hover:bg-primary/80">
-        Search
+    <form
+      onSubmit={handleSubmit}
+      className={cn(
+        "flex items-end gap-2 rounded-3xl border border-input bg-background px-3 py-2 shadow-sm focus-within:ring-2 focus-within:ring-ring transition-shadow",
+        className
+      )}
+    >
+      <textarea
+        ref={textareaRef}
+        value={query}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder}
+        rows={1}
+        className="flex-1 resize-none overflow-y-auto bg-transparent outline-none text-base font-bold py-1 pl-2"
+      />
+      <Button
+        type="submit"
+        variant="outline"
+        disabled={!query.trim()}
+        className="cursor-pointer h-9 w-9 rounded-full p-0 bg-primary text-primary-foreground hover:bg-primary/10 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed w-full max-w-22"
+      >
+        <Search className="h-4 w-4" /> Zoeken
       </Button>
     </form>
   );
