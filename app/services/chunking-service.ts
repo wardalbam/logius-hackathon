@@ -1,5 +1,7 @@
 export interface Chunk {
   id: string; // <-- this is the source document's ID
+  source: string; // original file name (e.g. "my-doc.pdf")
+  pageNumber: number; // 1-based page number the chunk originates from
   chunkIndex: number;
   text: string;
 }
@@ -11,16 +13,16 @@ function splitSentences(text: string): string[] {
     .filter((s) => s.length > 0);
 }
 
-// pass data as a json array of objects with id and text properties
-// json input example -> [ {"id": "doc1", "text": "This is the first document."}]
+// pass data as a json array of objects with id, source, pageNumber and text properties
+// json input example -> [ {"id": "doc1", "source": "doc1.pdf", "pageNumber": 1, "text": "This is the first document."}]
 export function chunkDocuments(
-  docs: { id: string; text: string }[],
+  docs: { id: string; source: string; pageNumber: number; text: string }[],
   maxWords = 100,
   overlapSentences = 2
 ): Chunk[] {
   const chunks: Chunk[] = [];
 
-  for (const { id, text } of docs) {
+  for (const { id, source, pageNumber, text } of docs) {
     const sentences = splitSentences(text);
     let chunkIndex = 0;
     let i = 0;
@@ -36,7 +38,7 @@ export function chunkDocuments(
         j++;
       }
 
-      chunks.push({ id, chunkIndex, text: chunkSentences.join(" ") });
+      chunks.push({ id, source, pageNumber, chunkIndex, text: chunkSentences.join(" ") });
       chunkIndex++;
       i += Math.max(1, chunkSentences.length - overlapSentences);
     }
