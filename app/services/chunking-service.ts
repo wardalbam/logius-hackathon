@@ -6,42 +6,75 @@ export interface Chunk {
   text: string;
 }
 
+interface PageInput {
+  id: string;
+  source: string;
+  pageNumber: number;
+  text: string;
+}
+
+/** Split text into sentences. Falls back to newline/semicolon boundaries
+ *  so headings, bullet points and table rows also become separate units. */
 function splitSentences(text: string): string[] {
   return text
-    .split(/(?<=[.!?])\s+/)
+    .split(/(?<=[.!?;:\n])\s+/)
     .map((s) => s.trim())
     .filter((s) => s.length > 0);
 }
 
-// pass data as a json array of objects with id, source, pageNumber and text properties
-// json input example -> [ {"id": "doc1", "source": "doc1.pdf", "pageNumber": 1, "text": "This is the first document."}]
+/**
+ * Chunk **all pages of a single document** into overlapping chunks.
+ *
+ * Pages are processed in order; each sentence remembers which page it
+ * came from so that `pageNumber` on the resulting chunk points to the
+ * page where the chunk *starts*.
+ */
 export function chunkDocuments(
-  docs: { id: string; source: string; pageNumber: number; text: string }[],
+  docs: PageInput[],
   maxWords = 100,
-  overlapSentences = 2
+  overlapSentences = 2,
 ): Chunk[] {
-  const chunks: Chunk[] = [];
+  if (docs.length === 0) return [];
 
-  for (const { id, source, pageNumber, text } of docs) {
-    const sentences = splitSentences(text);
-    let chunkIndex = 0;
-    let i = 0;
+  // ── 1. Build a flat list of (sentence, pageNumber) across all pages ──
+  const { id, source } = docs[0];
 
-    while (i < sentences.length) {
-      const chunkSentences: string[] = [];
-      let wordCount = 0;
-
-      let j = i;
-      while (j < sentences.length && wordCount < maxWords) {
-        chunkSentences.push(sentences[j]);
-        wordCount += sentences[j].split(" ").length;
-        j++;
-      }
-
-      chunks.push({ id, source, pageNumber, chunkIndex, text: chunkSentences.join(" ") });
-      chunkIndex++;
-      i += Math.max(1, chunkSentences.length - overlapSentences);
+  const allSentences: { text: string; pageNumber: number }[] = [];
+  for (const page of docs) {
+    if (!page.text.trim()) continue; // skip empty pages
+    for (const s of splitSentences(page.text)) {
+      allSentences.push({ text: s, pageNumber: page.pageNumber });
     }
+  }
+
+  if (allSentences.length === 0) return [];
+
+  // ── 2. Slide a window over the sentence list ─────────────────────────
+  const chunks: Chunk[] = [];
+  let chunkIndex = 0;
+  let i = 0;
+
+  while (i < allSentences.length) {
+    const chunkSentences: string[] = [];
+    let wordCount = 0;
+    const startPage = allSentences[i].pageNumber;
+
+    let j = i;
+    while (j < allSentences.length && wordCount < maxWords) {
+      chunkSentences.push(allSentences[j].text);
+      wordCount += allSentences[j].text.split(" ").length;
+      j++;
+    }
+
+    chunks.push({
+      id,
+      source,
+      pageNumber: startPage,
+      chunkIndex,
+      text: chunkSentences.join(" "),
+    });
+    chunkIndex++;
+    i += Math.max(1, chunkSentences.length - overlapSentences);
   }
 
   return chunks;
