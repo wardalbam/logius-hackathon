@@ -1,5 +1,6 @@
 import { getChunksFromPdf } from "@/app/services/pdfReader-service";
 import { SearchBar } from "@/components/ui/search-bar";
+import  ResultCard  from "@/components/ui/result-card";
 
 export default async function SearchPage() {
   const chunks = await getChunksFromPdf(
