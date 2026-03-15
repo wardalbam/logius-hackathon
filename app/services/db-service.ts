@@ -23,6 +23,9 @@ function getDb(): Database.Database {
         chunkIndex  INTEGER NOT NULL,
         text        TEXT    NOT NULL,
         embedding   BLOB    NOT NULL,
+        tags        TEXT,
+        authors     TEXT,
+        publishDate TEXT,
         PRIMARY KEY (source, chunkIndex)
       );
     `);
@@ -86,8 +89,8 @@ export function saveEmbeddedChunks(chunks: EmbeddedChunk[]): void {
   const conn = getDb();
 
   const insert = conn.prepare(`
-    INSERT OR REPLACE INTO embeddings (id, source, pageNumber, chunkIndex, text, embedding)
-    VALUES (@id, @source, @pageNumber, @chunkIndex, @text, @embedding)
+    INSERT OR REPLACE INTO embeddings (id, source, pageNumber, chunkIndex, text, embedding, tags, authors, publishDate)
+    VALUES (@id, @source, @pageNumber, @chunkIndex, @text, @embedding, @tags, @authors, @publishDate)
   `);
 
   const insertMany = conn.transaction((rows: EmbeddedChunk[]) => {
@@ -99,6 +102,9 @@ export function saveEmbeddedChunks(chunks: EmbeddedChunk[]): void {
         chunkIndex: row.chunkIndex,
         text: row.text,
         embedding: serialiseEmbedding(row.embedding),
+        tags: row.tags ? JSON.stringify(row.tags) : null,
+        authors: row.authors ? JSON.stringify(row.authors) : null,
+        publishDate: row.publishDate || null,
       });
     }
   });
@@ -114,7 +120,7 @@ export function getEmbeddedChunksBySource(source: string): EmbeddedChunk[] {
   const conn = getDb();
   const rows = conn
     .prepare(
-      `SELECT id, source, pageNumber, chunkIndex, text, embedding
+      `SELECT id, source, pageNumber, chunkIndex, text, embedding, tags, authors, publishDate
        FROM embeddings
        WHERE source = ?
        ORDER BY chunkIndex`,
@@ -126,6 +132,9 @@ export function getEmbeddedChunksBySource(source: string): EmbeddedChunk[] {
     chunkIndex: number;
     text: string;
     embedding: Buffer;
+    tags: string | null;
+    authors: string | null;
+    publishDate: string | null;
   }[];
 
   return rows.map((r) => ({
@@ -135,6 +144,9 @@ export function getEmbeddedChunksBySource(source: string): EmbeddedChunk[] {
     chunkIndex: r.chunkIndex,
     text: r.text,
     embedding: deserialiseEmbedding(r.embedding),
+    tags: r.tags ? JSON.parse(r.tags) : undefined,
+    authors: r.authors ? JSON.parse(r.authors) : undefined,
+    publishDate: r.publishDate || undefined,
   }));
 }
 
@@ -145,7 +157,7 @@ export function getAllEmbeddedChunks(): EmbeddedChunk[] {
   const conn = getDb();
   const rows = conn
     .prepare(
-      `SELECT id, source, pageNumber, chunkIndex, text, embedding
+      `SELECT id, source, pageNumber, chunkIndex, text, embedding, tags, authors, publishDate
        FROM embeddings
        ORDER BY source, chunkIndex`,
     )
@@ -156,6 +168,9 @@ export function getAllEmbeddedChunks(): EmbeddedChunk[] {
     chunkIndex: number;
     text: string;
     embedding: Buffer;
+    tags: string | null;
+    authors: string | null;
+    publishDate: string | null;
   }[];
 
   return rows.map((r) => ({
@@ -165,6 +180,9 @@ export function getAllEmbeddedChunks(): EmbeddedChunk[] {
     chunkIndex: r.chunkIndex,
     text: r.text,
     embedding: deserialiseEmbedding(r.embedding),
+    tags: r.tags ? JSON.parse(r.tags) : undefined,
+    authors: r.authors ? JSON.parse(r.authors) : undefined,
+    publishDate: r.publishDate || undefined,
   }));
 }
 
@@ -207,6 +225,9 @@ export interface SearchResult {
   chunkIndex: number;
   text: string;
   rank: number; // BM25 relevance score (lower = more relevant)
+  tags?: string[]; // JSON array as string
+  authors?: string[]; // JSON array as string
+  publishDate?: string;
 }
 
 /**
@@ -235,16 +256,20 @@ export function searchByKeyword(
   const rows = conn
     .prepare(
       `SELECT e.id, e.source, e.pageNumber, e.chunkIndex, e.text,
-              rank
+              rank, e.tags, e.authors, e.publishDate
        FROM embeddings_fts
        JOIN embeddings e ON e.rowid = embeddings_fts.rowid
        WHERE embeddings_fts MATCH ?
        ORDER BY rank
        LIMIT ?`,
     )
-    .all(terms, maxResults) as (SearchResult)[];
+    .all(terms, maxResults) as (SearchResult & { tags: string | null; authors: string | null; publishDate: string | null })[];
 
-  return rows;
+  return rows.map((r) => ({
+    ...r,
+    tags: r.tags ? JSON.parse(r.tags) : undefined,
+    authors: r.authors ? JSON.parse(r.authors) : undefined,
+  }));
 }
 
 /**
@@ -271,21 +296,25 @@ export function searchByKeywordTopPerSource(
     .prepare(
       `WITH ranked AS (
          SELECT e.id, e.source, e.pageNumber, e.chunkIndex, e.text,
-                rank,
+                rank, e.tags, e.authors, e.publishDate,
                 ROW_NUMBER() OVER (PARTITION BY e.source ORDER BY rank) AS rn
          FROM embeddings_fts
          JOIN embeddings e ON e.rowid = embeddings_fts.rowid
          WHERE embeddings_fts MATCH ?
        )
-       SELECT id, source, pageNumber, chunkIndex, text, rank
+       SELECT id, source, pageNumber, chunkIndex, text, rank, tags, authors, publishDate
        FROM ranked
        WHERE rn = 1
        ORDER BY rank
        LIMIT ?`,
     )
-    .all(terms, maxSources) as SearchResult[];
+    .all(terms, maxSources) as (SearchResult & { tags: string | null; authors: string | null; publishDate: string | null })[];
 
-  return rows;
+  return rows.map((r) => ({
+    ...r,
+    tags: r.tags ? JSON.parse(r.tags) : undefined,
+    authors: r.authors ? JSON.parse(r.authors) : undefined,
+  }));
 }
 
 /**
@@ -342,6 +371,9 @@ export function semanticSearchTopPerSource(
     chunkIndex: c.chunkIndex,
     text: c.text,
     rank: cosineSimilarity(queryEmbedding, c.embedding),
+    tags: c.tags,
+    authors: c.authors,
+    publishDate: c.publishDate,
   }));
 
   // Keep only the top chunk per source

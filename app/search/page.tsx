@@ -1,3 +1,4 @@
+import { extractMetadataFromText } from "@/app/services/ai-metadata-service";
 import { getChunksFromPdf } from "@/app/services/pdfReader-service";
 import fs from "node:fs";
 import path from "node:path";
@@ -35,7 +36,38 @@ export default async function SearchPage() {
       overlapSentences: 2,
     });
     const embedded = await embedChunks(chunks);
-    saveEmbeddedChunks(embedded);
+
+    // Extract metadata from the first few chunks to get document-level metadata
+    let documentMetadata = {
+      tags: [] as string[],
+      authors: [] as string[],
+      publishDate: null as string | null,
+    };
+
+    if (embedded.length > 0) {
+      // Use first significant chunk for metadata extraction
+      const firstChunk = embedded[0];
+      const sampleText = embedded
+        .slice(0, Math.min(3, embedded.length))
+        .map((c) => c.text)
+        .join(" ");
+
+      try {
+        documentMetadata = await extractMetadataFromText(sampleText, source);
+      } catch (error) {
+        console.error(`Error extracting metadata for ${source}:`, error);
+      }
+    }
+
+    // Add metadata to all chunks of this document
+    const enrichedChunks = embedded.map((chunk) => ({
+      ...chunk,
+      tags: documentMetadata.tags,
+      authors: documentMetadata.authors,
+      publishDate: documentMetadata.publishDate || undefined,
+    }));
+
+    saveEmbeddedChunks(enrichedChunks);
     needsFtsRebuild = true;
   }
 

@@ -6,6 +6,9 @@ import type { Chunk } from "./chunking-service";
 /** A chunk enriched with its embedding vector */
 export interface EmbeddedChunk extends Chunk {
   embedding: number[];
+  tags?: string[]; // Array of tags
+  authors?: string[]; // Array of author names
+  publishDate?: string; // ISO date string or null
 }
 
 // ── Text cleaning ────────────────────────────────────────────────────────────
