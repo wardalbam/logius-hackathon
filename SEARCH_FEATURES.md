@@ -46,10 +46,10 @@ When documents are indexed, Claude automatically extracts:
 Add your Claude API key to your `.env.local` file:
 
 ```bash
-ANTHROPIC_API_KEY=sk_your_key_here
+GEMINI_API_KEY=your_google_api_key_here
 ```
 
-Get your API key from: https://console.anthropic.com/
+Get your API key from: https://aistudio.google.com/app/apikey
 
 ### Data Directory
 

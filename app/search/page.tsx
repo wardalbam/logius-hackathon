@@ -3,14 +3,13 @@ import { getChunksFromPdf } from "@/app/services/pdfReader-service";
 import fs from "node:fs";
 import path from "node:path";
 import {
-  countEmbeddings,
-  getAllSources,
+  getDocumentMetadataSummaries,
   hasEmbeddings,
   rebuildFtsIndex,
   saveEmbeddedChunks,
 } from "../services/db-service";
 import { embedChunks } from "../services/embedding-service";
-import SearchClient from "./search-client";
+import SearchWorkspace from "./search-workspace";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 
@@ -46,7 +45,6 @@ export default async function SearchPage() {
 
     if (embedded.length > 0) {
       // Use first significant chunk for metadata extraction
-      const firstChunk = embedded[0];
       const sampleText = embedded
         .slice(0, Math.min(3, embedded.length))
         .map((c) => c.text)
@@ -73,19 +71,7 @@ export default async function SearchPage() {
 
   if (needsFtsRebuild) rebuildFtsIndex();
 
-  const sources = getAllSources();
-  const totalChunks = countEmbeddings();
+  const documents = getDocumentMetadataSummaries();
 
-  return (
-    <main className="flex min-h-screen flex-col items-center px-4 py-16 gap-8">
-      <h1 className="text-2xl font-bold">Doorzoek documenten</h1>
-      <p className="text-sm text-gray-500">
-        {sources.length} document{sources.length !== 1 && "en"} geïndexeerd
-        ({totalChunks} chunks)
-      </p>
-
-      {/* Keyword search — shows top chunk per document */}
-      <SearchClient />
-    </main>
-  );
+  return <SearchWorkspace initialDocuments={documents} />;
 }

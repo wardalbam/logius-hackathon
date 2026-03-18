@@ -328,6 +328,47 @@ export function getAllSources(): string[] {
   return rows.map((r) => r.source);
 }
 
+export interface DocumentMetadataSummary {
+  source: string;
+  tags: string[];
+  authors: string[];
+  publishDate: string | null;
+}
+
+/**
+ * Return one metadata summary row per source document.
+ * Uses the first chunk per source as document-level metadata snapshot.
+ */
+export function getDocumentMetadataSummaries(): DocumentMetadataSummary[] {
+  const conn = getDb();
+  const rows = conn
+    .prepare(
+      `SELECT e.source, e.tags, e.authors, e.publishDate
+       FROM embeddings e
+       INNER JOIN (
+         SELECT source, MIN(chunkIndex) AS minChunk
+         FROM embeddings
+         GROUP BY source
+       ) first_chunk
+       ON e.source = first_chunk.source
+       AND e.chunkIndex = first_chunk.minChunk
+       ORDER BY e.source`,
+    )
+    .all() as {
+    source: string;
+    tags: string | null;
+    authors: string | null;
+    publishDate: string | null;
+  }[];
+
+  return rows.map((row) => ({
+    source: row.source,
+    tags: row.tags ? JSON.parse(row.tags) : [],
+    authors: row.authors ? JSON.parse(row.authors) : [],
+    publishDate: row.publishDate || null,
+  }));
+}
+
 /**
  * Rebuild the FTS index from the current embeddings table.
  * Call this once after initially populating the DB (before triggers existed).

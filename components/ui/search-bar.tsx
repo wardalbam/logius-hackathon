@@ -3,25 +3,38 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Search } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface SearchBarProps {
   placeholder?: string;
+  value?: string;
+  onValueChange?: (value: string) => void;
   onSearch?: (query: string) => void;
   className?: string;
 }
 
-export function SearchBar({ placeholder = "Search...", onSearch, className }: SearchBarProps) {
-  const [query, setQuery] = useState("");
+export function SearchBar({ placeholder = "Zoek in documenten...", value, onValueChange, onSearch, className }: Readonly<SearchBarProps>) {
+  const [internalQuery, setInternalQuery] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const query = value ?? internalQuery;
 
-  function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
-    setQuery(e.target.value);
+  useEffect(() => {
     const el = textareaRef.current;
     if (el) {
       el.style.height = "auto";
       el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
     }
+  }, [query]);
+
+  function updateQuery(nextValue: string) {
+    if (value === undefined) {
+      setInternalQuery(nextValue);
+    }
+    onValueChange?.(nextValue);
+  }
+
+  function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    updateQuery(e.target.value);
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -31,7 +44,7 @@ export function SearchBar({ placeholder = "Search...", onSearch, className }: Se
     }
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     onSearch?.(query);
   }
@@ -40,7 +53,7 @@ export function SearchBar({ placeholder = "Search...", onSearch, className }: Se
     <form
       onSubmit={handleSubmit}
       className={cn(
-        "flex items-end gap-2 rounded-3xl border border-input bg-background px-3 py-2 shadow-sm focus-within:ring-2 focus-within:ring-ring transition-shadow",
+        "flex items-end gap-2 rounded-3xl border border-input px-3 py-2 focus-within:ring-2 focus-within:ring-ring transition-shadow",
         className
       )}
     >
